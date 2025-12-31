@@ -7,21 +7,22 @@
 
 import Foundation
 
-public typealias DependencyGenerator = ((AquariumResolver) -> Any)
-public typealias DependencyContainer = AquariumRegister & AquariumResolver
+public typealias DependencyGenerator = ((AquariumContainerResolver) -> Any)
+public typealias DependencyContainer = AquariumContainerRegister & AquariumContainerResolver
 
 public final class Aquarium: AquariumDependencyFacade {
     
     private var singletonContainer: DependencyContainer
     private var prototypeContainer: DependencyContainer
-    public static let shared = Aquarium(singletonContainer: SingletonContainer(), prototypeContainer: PrototypeContainer())
+    @MainActor public static let shared = Aquarium(singletonContainer: SingletonContainer(), prototypeContainer: PrototypeContainer())
     
     public init(singletonContainer: DependencyContainer, prototypeContainer: DependencyContainer) {
         self.singletonContainer = singletonContainer
         self.prototypeContainer = prototypeContainer
     }
     
-    public func register<DependencyType>(registration: @escaping (AquariumResolver) -> DependencyType, with type: RegistrationType) throws {
+    public func register<DependencyType>(registration: @escaping (AquariumContainerResolver) -> DependencyType,
+                                         with type: RegistrationType) throws {
         if type == .singleton {
             try singletonContainer.register(registration: registration)
         } else {

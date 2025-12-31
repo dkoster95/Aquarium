@@ -58,7 +58,7 @@ class SingletonContainerTests: XCTestCase {
     }
 }
 
-internal protocol SomeDependency: class {
+internal protocol SomeDependency: AnyObject {
     func someDependencyMethod(value: String)
     var someValue: String { get }
 }

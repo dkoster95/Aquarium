@@ -8,12 +8,12 @@
 import Foundation
 import Aquarium
 
-class ContainerMock: AquariumRegister, AquariumResolver {
+class ContainerMock: AquariumContainerRegister, AquariumContainerResolver {
     
     public var errorThrown: Error?
     public var instances: [(generator: DependencyGenerator, type: Any.Type)] = []
     
-    func register<DependencyType>(registration: @escaping (AquariumResolver) -> DependencyType) throws {
+    func register<DependencyType>(registration: @escaping (AquariumContainerResolver) -> DependencyType) throws {
         if let error = self.errorThrown {
             throw error
         }
