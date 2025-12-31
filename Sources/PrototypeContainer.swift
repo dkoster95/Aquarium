@@ -9,7 +9,8 @@ import Foundation
 
 typealias Registration = (generator: DependencyGenerator, type: Any.Type)
 
-public class PrototypeContainer: AquariumRegister, AquariumResolver {
+
+public class PrototypeContainer: AquariumContainerRegister, AquariumContainerResolver {
     
     var registrations: [Registration] = []
     
@@ -17,7 +18,7 @@ public class PrototypeContainer: AquariumRegister, AquariumResolver {
         
     }
     
-    public func register<DependencyType>(registration: @escaping (AquariumResolver) -> DependencyType) throws {
+    public func register<DependencyType>(registration: @escaping (AquariumContainerResolver) -> DependencyType) throws {
         let dependencyExists = registrations.contains { registation in
             return (registation.type as? (DependencyType.Type)) != nil
         }

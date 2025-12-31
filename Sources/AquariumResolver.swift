@@ -7,7 +7,7 @@
 
 import Foundation
 
-public protocol AquariumResolver: class {
+public protocol AquariumContainerResolver {
     func resolve<DependencyType>() throws -> DependencyType
 }
 
@@ -16,10 +16,11 @@ public enum RegistrationType {
     case prototype
 }
 
-public protocol AquariumRegister {
-    func register<DependencyType>(registration: @escaping (AquariumResolver) -> DependencyType) throws
+public protocol AquariumContainerRegister {
+    func register<DependencyType>(registration: @escaping (AquariumContainerResolver) -> DependencyType) throws
 }
 
-public protocol AquariumDependencyFacade: AquariumResolver {
-    func register<DependencyType>(registration: @escaping (AquariumResolver) -> DependencyType, with type: RegistrationType) throws
+public protocol AquariumDependencyFacade: AquariumContainerResolver {
+    func register<DependencyType>(registration: @escaping (AquariumContainerResolver) -> DependencyType,
+                                  with type: RegistrationType) throws
 }
