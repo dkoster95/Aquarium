@@ -10,4 +10,5 @@ import Foundation
 public enum AquariumError: Error {
     case dependencyNotRegistered
     case dependencyAlreadyRegistered
+    case registrationTypeNotConfigured
 }

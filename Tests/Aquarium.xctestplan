@@ -1,0 +1,24 @@
+{
+  "configurations" : [
+    {
+      "id" : "F792B334-DF7D-4507-AC52-0D1183F3FF3F",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "AquariumTests",
+        "name" : "AquariumTests"
+      }
+    }
+  ],
+  "version" : 1
+}

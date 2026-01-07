@@ -5,56 +5,63 @@
 //  Created by Daniel Koster on 9/21/21.
 //
 
-import XCTest
+import Testing
 import Aquarium
 
-class SingletonContainerTests: XCTestCase {
-    
-    private var sut: SingletonContainer!
-    
-    override func setUp() {
-        sut = SingletonContainer()
+extension SimpleContainer {
+    convenience init() {
+        self.init(logger: Logger())
     }
+}
 
-    func test_WhenDependencyExistentIsRegistered_ExpectDependencyRegisteredError() throws {
-        try sut.register { _ -> SomeDependency in
-            return SomeConcreteClass()
+class SingletonContainerTests {
+
+    @Test func test_WhenDependencyExistentIsRegistered_ExpectDependencyRegisteredError() throws {
+        let sut = SingletonContainer()
+        let registration = {
+            try sut.register(dependencyType: SomeDependency.self) { _ in
+                return SomeConcreteClass()
+            }
         }
-        XCTAssertThrowsError(try sut.register { _ -> SomeDependency in
-            return SomeConcreteClass()
-        })
+        try registration()
+        #expect(throws: AquariumError.dependencyAlreadyRegistered) {
+            try registration()
+        }
     }
     
-    func test_WhenDependencyIsRegistered_ExpectDependencyToBeResolved() throws {
-        try sut.register { _ -> SomeDependency in
+    @Test func test_WhenDependencyIsRegistered_ExpectDependencyToBeResolved() throws {
+        let sut = SingletonContainer()
+        try sut.register(dependencyType: SomeDependency.self) { _ in
             return SomeConcreteClass()
         }
         
         let result: SomeDependency = try sut.resolve()
         result.someDependencyMethod(value: "value")
-        XCTAssertEqual("value", result.someValue)
+        #expect("value" == result.someValue)
     }
     
-    func test_WhenDependencyIsRegistered_ExpectSameInstanceToBeResolved() throws {
-        try sut.register { _ -> SomeDependency in
+    @Test func test_WhenDependencyIsRegistered_ExpectSameInstanceToBeResolved() throws {
+        let sut = SingletonContainer()
+        try sut.register(dependencyType: SomeDependency.self) { _ in
             return SomeConcreteClass()
         }
         
         let result: SomeDependency = try sut.resolve()
         let resolveDependency: SomeDependency = try sut.resolve()
-        XCTAssert(result === resolveDependency)
+        #expect(result === resolveDependency)
     }
     
-    func test_WhenDependencyIsRegisteredUnderClassType_ExpectProtocolNotToBeResolved() throws {
-        try sut.register { _ in
+    @Test func test_WhenDependencyIsRegisteredUnderClassType_ExpectProtocolNotToBeResolved() throws {
+        let sut = SingletonContainer()
+        try sut.register(dependencyType: SomeConcreteClass.self) { _ in
             return SomeConcreteClass()
         }
-        if let _: SomeDependency = try? sut.resolve() {
-            XCTAssert(false)
+        #expect(throws: AquariumError.dependencyNotRegistered) {
+            let _: SomeDependency = try sut.resolve()
         }
         let result: SomeConcreteClass = try sut.resolve()
         result.someDependencyMethod(value: "value")
-        XCTAssertEqual("value", result.someValue)
+        #expect("value" == result.someValue)
     }
 }
 
