@@ -9,13 +9,9 @@ import Foundation
 
 private typealias SingletonObject = (type: Any.Type, instance: Any)
 
-public final class SingletonContainer: PrototypeContainer {
+public final class SingletonContainer: SimpleContainer {
     
     private var singletons: [SingletonObject] = []
-    
-    public override init() {
-        
-    }
     
     private func fetchSingletonObject<DependencyType>(for type: DependencyType.Type) -> DependencyType? {
         if singletons.hasType(DependencyType.self) {
@@ -28,10 +24,12 @@ public final class SingletonContainer: PrototypeContainer {
     
     public override func resolve<DependencyType>() throws -> DependencyType {
         if let dependencyInstantiated = fetchSingletonObject(for: DependencyType.self) {
+            logger.info("Dependency of Type \(DependencyType.self) resolved as singleton")
             return dependencyInstantiated
         }
         let instance: DependencyType = try super.resolve()
         singletons.append((DependencyType.self, instance))
+        logger.info("Dependency of Type \(DependencyType.self) saved as singleton")
         return instance
     }
 }
