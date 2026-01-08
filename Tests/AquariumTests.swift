@@ -14,13 +14,14 @@ public protocol SomeProtocol {
 
 struct AquariumTests {
     
-    func setUp() -> (sut: Aquarium,
+    func setUp(aquariums: [AquariumDependencyProvider] = []) -> (sut: Aquarium,
                      singletonContainerMock: ContainerMock,
                      simpleContainerMock: ContainerMock) {
         let singletonMock = ContainerMock()
         let simpleMock = ContainerMock()
         return (Aquarium(containers: [.singleton: singletonMock,
                                       .simple: simpleMock],
+                         aquariums: aquariums,
                          logger: Logger()),
                 singletonMock,
                 simpleMock)
@@ -88,6 +89,23 @@ struct AquariumTests {
         let _: SomeDependency = try sut.resolve()
         
         #expect(singletonMock.resolveCount == 1)
+    }
+    
+    @Test func test_whenResolvingMultipleDependencies() throws {
+        let (secondaryAquarium, secondarySingleton, secondarySimple) = setUp()
+        let (sut, singletonMock, simpleMock) = setUp(aquariums: [secondaryAquarium])
+        secondarySimple.resolveResult = SomeConcreteClass()
+        
+        try secondaryAquarium.register(dependencyType: SomeDependency.self,
+                                       registration: { container in
+            return SomeConcreteClass() },
+                                       with: .singleton)
+        secondarySingleton.errorThrown = AquariumError.dependencyNotRegistered
+        singletonMock.errorThrown = AquariumError.dependencyNotRegistered
+        simpleMock.errorThrown = AquariumError.dependencyNotRegistered
+        let _: SomeDependency = try sut.resolve()
+        
+        #expect(secondarySimple.resolveCount == 1)
     }
 
 }

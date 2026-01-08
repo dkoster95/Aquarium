@@ -37,15 +37,27 @@ public final class Aquarium: AquariumDependencyProvider {
         let registrationTypes = containers.keys.sorted { $0.rawValue < $1.rawValue }
         logger.info("container of types \(registrationTypes) found")
         for registrationAvailable in registrationTypes {
-            if let resolvedDependency: DependencyType = try? containers[registrationAvailable]?.resolve() {
-                return resolvedDependency
+            if let container = containers[registrationAvailable] {
+                do {
+                    let resolvedDependency: DependencyType = try container.resolve()
+                    logger.info("Dependency of type: \(DependencyType.self) found in current container under type: \(registrationAvailable)")
+                    return resolvedDependency
+                } catch let error {
+                    logger.info("Dependency of type: \(DependencyType.self) not found under registration type: \(registrationAvailable) error: \(error)")
+                }
             }
         }
+        logger.info("Dependency type of \(DependencyType.self) not found in current Aquarium, proceeding to search in subAquariums")
         for aquarium in aquariums {
-            if let resolvedDependency: DependencyType = try? aquarium.resolve() {
+            do {
+                let resolvedDependency: DependencyType = try aquarium.resolve()
+                logger.info("Dependency type of \(DependencyType.self) found in current subAquarium")
                 return resolvedDependency
+            } catch let error {
+                logger.info("Error while resolving in subAquarium \(error)")
             }
         }
+        logger.error("Dependency not registered in current Aquarium")
         throw AquariumError.dependencyNotRegistered
     }
 }

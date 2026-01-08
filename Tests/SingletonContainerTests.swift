@@ -79,3 +79,15 @@ internal class SomeConcreteClass: SomeDependency {
         previousVal = value
     }
 }
+
+protocol DependencyA {
+    var someValue: String { get }
+}
+
+class DependencyAImp: DependencyA {
+    let someDependency: SomeDependency
+    init(someDependency: SomeDependency) {
+        self.someDependency = someDependency
+    }
+    var someValue: String { someDependency.someValue }
+}

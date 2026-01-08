@@ -38,22 +38,29 @@ public class SimpleContainer: DependencyContainer {
         } as? (generator: DependencyGenerator, type: DependencyType.Type)
     }
     
-    private func findInContainers<DependencyType>(type: DependencyType.Type) -> DependencyType? {
+    private func findInContainers<DependencyType>(type: DependencyType.Type) throws -> DependencyType {
+        logger.info("Resolving dependency of type \(DependencyType.self) in subContainers")
         for container in containers {
-            if let dependency: DependencyType = try? container.resolve() {
+            logger.info("Resolving dependency of type \(DependencyType.self) in \(container)")
+            do {
+                let dependency: DependencyType = try container.resolve()
                 return dependency
+            } catch let error {
+                logger.info("Error when resolving in container \(error)")
             }
         }
-        return nil
+        throw AquariumError.dependencyNotRegistered
     }
     
     public func resolve<DependencyType>() throws -> DependencyType {
+        logger.info("Resolving dependency of type \(DependencyType.self)")
         if let validDependency = find(type: DependencyType.self),
            let instance = try validDependency.generator(self) as? DependencyType {
             logger.info("Dependency of Type \(DependencyType.self) found in container")
             return instance
         }
-        if let subDependency = findInContainers(type: DependencyType.self) {
+        logger.info("Dependency of Type \(DependencyType.self) not found in current container")
+        if let subDependency: DependencyType = try? findInContainers(type: DependencyType.self) {
             logger.info("Dependency of Type \(DependencyType.self) found in sub container")
             return subDependency
         }

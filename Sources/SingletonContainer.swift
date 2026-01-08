@@ -7,35 +7,20 @@
 
 import Foundation
 
-private typealias SingletonObject = (type: Any.Type, instance: Any)
-
 public final class SingletonContainer: SimpleContainer {
     
-    private var singletons: [SingletonObject] = []
-    
-    private func fetchSingletonObject<DependencyType>(for type: DependencyType.Type) -> DependencyType? {
-        if singletons.hasType(DependencyType.self) {
-            return singletons.first { singleton in
-                return (singleton.type as? (DependencyType.Type)) != nil
-            }?.instance as? DependencyType
-        }
-        return nil
-    }
+    private var singletons: [String: Any] = [:]
     
     public override func resolve<DependencyType>() throws -> DependencyType {
-        if let dependencyInstantiated = fetchSingletonObject(for: DependencyType.self) {
+        if let dependencyInstantiated = singletons["\(DependencyType.self)"],
+            let instance = dependencyInstantiated as? DependencyType {
             logger.info("Dependency of Type \(DependencyType.self) resolved as singleton")
-            return dependencyInstantiated
+            return instance
         }
+        logger.info("Dependency of Type \(DependencyType.self) singleton not instantiated proceeding to init")
         let instance: DependencyType = try super.resolve()
-        singletons.append((DependencyType.self, instance))
+        singletons["\(DependencyType.self)"] = instance
         logger.info("Dependency of Type \(DependencyType.self) saved as singleton")
         return instance
-    }
-}
-
-private extension Array where Element == (type: Any.Type, instance: Any) {
-    func hasType<Type>(_ type: Type) -> Bool {
-        return contains { ($0.type as? Type) != nil }
     }
 }
