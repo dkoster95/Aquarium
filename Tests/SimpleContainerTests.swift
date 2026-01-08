@@ -35,4 +35,19 @@ class SimpleContainerTests {
         result.someDependencyMethod(value: "value")
         #expect("value" == result.someValue)
     }
+    
+    @Test func multipleDependencies() throws {
+        let singletonContainer = SingletonContainer()
+        let sut = SimpleContainer(containers: [singletonContainer], logger: Logger())
+        try singletonContainer.register(dependencyType: SomeDependency.self) { _ in
+            return SomeConcreteClass()
+        }
+        try sut.register(dependencyType: DependencyA.self) { resolver in
+            let someDependency: SomeDependency = try resolver.resolve()
+            return DependencyAImp(someDependency: someDependency)
+        }
+
+        let result: DependencyA = try sut.resolve()
+        #expect("Empty" == result.someValue)
+    }
 }
