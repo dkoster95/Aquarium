@@ -14,7 +14,7 @@ public protocol SomeProtocol {
 
 struct AquariumTests {
     
-    func setUp(aquariums: [AquariumDependencyProvider] = []) -> (sut: Aquarium,
+    func setUp(aquariums: [Aquarium] = []) -> (sut: Aquarium,
                      singletonContainerMock: ContainerMock,
                      simpleContainerMock: ContainerMock) {
         let singletonMock = ContainerMock()
@@ -22,7 +22,7 @@ struct AquariumTests {
         return (Aquarium(containers: [.singleton: singletonMock,
                                       .simple: simpleMock],
                          aquariums: aquariums,
-                         logger: Logger()),
+                         logger: DefaultLogger(subsystem: "Aquarium Tests", category: "Aquarium")),
                 singletonMock,
                 simpleMock)
     }
@@ -79,8 +79,8 @@ struct AquariumTests {
     }
     
     @Test func test_whenResolvingExistentDependencyPrototype_expectError() throws {
-        let (sut, singletonMock, _) = setUp()
-        singletonMock.resolveResult = SomeConcreteClass()
+        let (sut, _, simpleMock) = setUp()
+        simpleMock.resolveResult = SomeConcreteClass()
         
         try sut.register(dependencyType: SomeDependency.self,
                          registration: { container -> SomeDependency in
@@ -88,24 +88,21 @@ struct AquariumTests {
                                           with: .singleton)
         let _: SomeDependency = try sut.resolve()
         
-        #expect(singletonMock.resolveCount == 1)
+        #expect(simpleMock.resolveCount == 1)
     }
     
     @Test func test_whenResolvingMultipleDependencies() throws {
-        let (secondaryAquarium, secondarySingleton, secondarySimple) = setUp()
-        let (sut, singletonMock, simpleMock) = setUp(aquariums: [secondaryAquarium])
-        secondarySimple.resolveResult = SomeConcreteClass()
-        
+        let secondaryAquarium = Aquarium()
         try secondaryAquarium.register(dependencyType: SomeDependency.self,
                                        registration: { container in
             return SomeConcreteClass() },
                                        with: .singleton)
-        secondarySingleton.errorThrown = AquariumError.dependencyNotRegistered
-        singletonMock.errorThrown = AquariumError.dependencyNotRegistered
-        simpleMock.errorThrown = AquariumError.dependencyNotRegistered
-        let _: SomeDependency = try sut.resolve()
+        let sut = Aquarium(aquariums: [secondaryAquarium])
+        try sut.register(dependencyType: DependencyA.self,
+                     registration: { container in DependencyAImp(someDependency: try container.resolve()) },
+                     with: .simple)
+        let result: DependencyA = try sut.resolve()
         
-        #expect(secondarySimple.resolveCount == 1)
+        #expect(result != nil)
     }
-
 }

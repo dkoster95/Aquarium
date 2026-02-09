@@ -7,17 +7,31 @@
 
 import Foundation
 
-public final class Aquarium: AquariumDependencyProvider {
+public final class Aquarium: AquariumDependencyProvider, ComposableAquarium {
     private var containers: [RegistrationType: DependencyContainer] = [:]
-    private var aquariums: [any AquariumDependencyProvider]
     private let logger: AquariumLogger
+    public var root: DependencyContainer
     
     public init(containers: [RegistrationType : DependencyContainer],
-                aquariums: [any AquariumDependencyProvider] = [],
+                aquariums: [any AquariumDependencyProvider & ComposableAquarium] = [],
                 logger: AquariumLogger) {
         self.containers = containers
-        self.aquariums = aquariums
         self.logger = logger
+        root = containers[RegistrationType.simple] != nil ? containers[.simple]! : containers[.singleton]!
+        initRoot(aquariums: aquariums)
+    }
+    
+    private func initRoot(aquariums: [any AquariumDependencyProvider & ComposableAquarium]) {
+        for registrationType in RegistrationType.allCases where registrationType != .simple {
+            if let container = containers[registrationType] {
+                root += container
+            }
+        }
+        for aquarium in aquariums {
+            if !aquarium.root.isEmpty {
+                root += aquarium.root
+            }
+        }
     }
     
     public func register<DependencyType>(dependencyType: DependencyType.Type,
@@ -36,28 +50,24 @@ public final class Aquarium: AquariumDependencyProvider {
     public func resolve<DependencyType>() throws -> DependencyType {
         let registrationTypes = containers.keys.sorted { $0.rawValue < $1.rawValue }
         logger.info("container of types \(registrationTypes) found")
-        for registrationAvailable in registrationTypes {
-            if let container = containers[registrationAvailable] {
-                do {
-                    let resolvedDependency: DependencyType = try container.resolve()
-                    logger.info("Dependency of type: \(DependencyType.self) found in current container under type: \(registrationAvailable)")
-                    return resolvedDependency
-                } catch let error {
-                    logger.info("Dependency of type: \(DependencyType.self) not found under registration type: \(registrationAvailable) error: \(error)")
-                }
-            }
-        }
-        logger.info("Dependency type of \(DependencyType.self) not found in current Aquarium, proceeding to search in subAquariums")
-        for aquarium in aquariums {
-            do {
-                let resolvedDependency: DependencyType = try aquarium.resolve()
-                logger.info("Dependency type of \(DependencyType.self) found in current subAquarium")
-                return resolvedDependency
-            } catch let error {
-                logger.info("Error while resolving in subAquarium \(error)")
-            }
+        do {
+            let resolvedDependency: DependencyType = try root.resolve()
+            logger.info("Dependency of type: \(DependencyType.self) found in current Aquarium")
+            return resolvedDependency
+        } catch let error {
+            logger.info("Dependency of type: \(DependencyType.self) not found error: \(error)")
         }
         logger.error("Dependency not registered in current Aquarium")
         throw AquariumError.dependencyNotRegistered
+    }
+}
+
+public extension Aquarium {
+    convenience init(aquariums: [any AquariumDependencyProvider & ComposableAquarium] = [],
+                     logger: AquariumLogger = DefaultLogger(subsystem: "Aquarium", category: "Aquarium Logs")) {
+        self.init(containers: [.simple: SimpleContainer(),
+                               .singleton: SingletonContainer()],
+                  aquariums: aquariums,
+                  logger: logger)
     }
 }

@@ -9,13 +9,26 @@ import Foundation
 
 public typealias DependencyGenerator = ((AquariumContainerResolver) throws -> Any)
 
-public typealias DependencyContainer = AquariumContainerRegister & AquariumContainerResolver
+public typealias DependencyContainer = AquariumContainerRegister & AquariumContainerResolver & ImportableContainer
 public typealias RegistrationHandler<DependencyType> = (AquariumContainerResolver) throws -> DependencyType
 
 typealias Registration = (generator: DependencyGenerator, type: Any.Type)
 
 public protocol AquariumContainerResolver {
     func resolve<DependencyType>() throws -> DependencyType
+}
+
+public protocol ComposableAquarium {
+    var root: DependencyContainer { get set }
+}
+
+public protocol ImportableContainer {
+    var containers: [DependencyContainer] { get set }
+    var isEmpty: Bool { get }
+}
+
+func += (left: inout DependencyContainer, right: DependencyContainer) {
+    left.containers.append(right)
 }
 
 public enum RegistrationType: Int, CaseIterable {

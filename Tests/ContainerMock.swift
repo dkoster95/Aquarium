@@ -9,29 +9,11 @@ import Foundation
 import Aquarium
 import os
 
-struct Logger: AquariumLogger {
-    let logger = os.Logger(subsystem: "Aquarium", category: "Tests")
+class ContainerMock: DependencyContainer {
     
-    func debug(_ msg: String) {
-        logger.debug("\(msg)")
-    }
+    var isEmpty: Bool = true
     
-    func info(_ msg: String) {
-        logger.info("\(msg)")
-    }
-    
-    func error(_ msg: String) {
-        logger.error("\(msg)")
-    }
-    
-    func trace(_ msg: String) {
-        logger.trace("\(msg)")
-    }
-    
-    
-}
-
-class ContainerMock: AquariumContainerRegister, AquariumContainerResolver {
+    var containers: [any DependencyContainer] = []
     
     public var errorThrown: Error?
     private(set) var registerCount = 0
