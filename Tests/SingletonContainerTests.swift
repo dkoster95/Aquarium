@@ -10,7 +10,7 @@ import Aquarium
 
 extension SimpleContainer {
     convenience init() {
-        self.init(logger: Logger())
+        self.init(logger: DefaultLogger(subsystem: "SingletonContainer", category: "Singleton Container Tests"))
     }
 }
 

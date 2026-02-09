@@ -38,7 +38,7 @@ class SimpleContainerTests {
     
     @Test func multipleDependencies() throws {
         let singletonContainer = SingletonContainer()
-        let sut = SimpleContainer(containers: [singletonContainer], logger: Logger())
+        let sut = SimpleContainer(containers: [singletonContainer], logger: DefaultLogger(subsystem: "SimpleContainer", category: "SimpleContainer tests"))
         try singletonContainer.register(dependencyType: SomeDependency.self) { _ in
             return SomeConcreteClass()
         }

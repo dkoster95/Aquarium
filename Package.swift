@@ -5,6 +5,10 @@ import PackageDescription
 
 let package = Package(
     name: "Aquarium",
+    platforms: [.iOS(.v15),
+                .watchOS(.v7),
+                .macOS(.v12),
+                .tvOS(.v14)],
     products: [
         .library(
             name: "Aquarium",

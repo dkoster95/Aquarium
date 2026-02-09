@@ -9,7 +9,7 @@ import Foundation
 
 public class SimpleContainer: DependencyContainer {
     
-    private let containers: [DependencyContainer]
+    public var containers: [DependencyContainer]
     let logger: AquariumLogger
     var registrations: [Registration] = []
     
@@ -17,6 +17,11 @@ public class SimpleContainer: DependencyContainer {
                 logger: AquariumLogger) {
         self.containers = containers
         self.logger = logger
+    }
+    
+    public var isEmpty: Bool {
+        let subContainersAreEmpty = containers.reduce(into: true) { $0 = $0 && $1.isEmpty }
+        return registrations.isEmpty && subContainersAreEmpty
     }
     
     public func register<DependencyType>(dependencyType: DependencyType.Type,
@@ -66,5 +71,11 @@ public class SimpleContainer: DependencyContainer {
         }
         logger.error("Dependency of Type \(DependencyType.self) is not registered")
         throw AquariumError.dependencyNotRegistered
+    }
+}
+
+public extension SimpleContainer {
+    convenience init() {
+        self.init(logger: DefaultLogger(subsystem: "Aquarium", category: "Simple Container"))
     }
 }
