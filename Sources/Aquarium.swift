@@ -14,7 +14,7 @@ public typealias RegistrationHandler<DependencyType> = (AquariumContainerResolve
 
 typealias Registration = (generator: DependencyGenerator, type: Any.Type)
 
-public protocol AquariumContainerResolver {
+public protocol AquariumContainerResolver: AnyObject {
     func resolve<DependencyType>() throws -> DependencyType
 }
 
